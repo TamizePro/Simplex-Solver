@@ -122,6 +122,7 @@ class Tableau:
                 line.append(' ')
 
             line.append('|')
+
         line = ''.join(line)
         print(line)
 
@@ -173,7 +174,7 @@ class Tableau:
         self.__print_function(max_lenght)
         print('\n')
 
-    def entering_variable(self,optimal_variables,type_max):
+    def entering_variable(self,optimal_variables):
         entering = self.__VARIABLES[0]
 
         for var in self.__VARIABLES:
@@ -345,6 +346,8 @@ class Problem:
             elif self.__constraints[i][1] == '>=':
                 self.__constraints[i][0]['E' + str(i+1)] = -1
                 self.__constraints[i][0]['A' + str(i+1)] = 1
+            else:
+                self.__constraints[i][0]['A' + str(i + 1)] = 1
 
             constraint = self.__constraints[i][0]
             constraints.append(constraint)
@@ -396,40 +399,18 @@ class Problem:
         self.__variables()
         self.__complete_lines()
 
-    def __out_of_base_variables(self,constraint_index,out_of_base_variables,base_variables):
-        out_of_base = copy.deepcopy(out_of_base_variables)
-
-        for var in self.__VARIABLES:
-            if self.__constraints[constraint_index] != 0:
-                if var not in out_of_base and var not in base_variables:
-                    out_of_base.append(var)
-
-        return out_of_base
-
     def starting_base(self):
         base = list()
-        out_of_base = list()
 
         for i in range(len(self.__constraints)):
             constraint = self.__constraints[i]
 
             if ('A'+str(i+1)) in constraint:
                 var = 'A'+str(i+1)
-            elif ('E'+str(i+1)) in constraint:
-                var = 'E'+str(i+1)
             else:
-                var = None
-
-                for v in self.__VARIABLES:
-                    if v not in out_of_base:
-                        var = v
-                        break
-
-                if var == None:
-                    raise ConflictingConstraintsException(i)
+                var = 'E'+str(i+1)
 
             base.append(var)
-            out_of_base = self.__out_of_base_variables(i,out_of_base,base)
 
         return base
 
@@ -443,7 +424,7 @@ class Problem:
         tableau = Tableau(starting_base,self.__VARIABLES,self.__constraints,self.__obj_fct)
         tableaux.append(tableau)
 
-        entering = tableau.entering_variable(optimal_variables,self.__MAX_PROBLEM)
+        entering = tableau.entering_variable(optimal_variables)
 
         while(entering != None):
             leaving_index = tableau.leaving_variable_index(entering)
@@ -454,6 +435,6 @@ class Problem:
             if tableau.is_final():
                 optimal_variables.update(tableau.base())
 
-            entering = tableau.entering_variable(optimal_variables,self.__MAX_PROBLEM)
+            entering = tableau.entering_variable(optimal_variables)
 
         return  tableaux
