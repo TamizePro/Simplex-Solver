@@ -89,6 +89,8 @@ class Tableau:
             else:
                 solution.append((var,0))
 
+        solution.append(('Z',self.__OBJ_FCT['B']))
+
         return solution
 
     def data(self):
@@ -111,7 +113,7 @@ class Tableau:
         line = ['|']
 
         for i in range(max_lenght):
-            line.append(' ')
+            line.append('_')
 
         line.append('|')
 
@@ -119,7 +121,7 @@ class Tableau:
             line.append(var)
 
             for i in range(max_lenght - len(var)):
-                line.append(' ')
+                line.append('_')
 
             line.append('|')
 
@@ -151,7 +153,7 @@ class Tableau:
         line = ['|Cj']
 
         for i in range(max_lenght - 2):
-            line.append(' ')
+            line.append('_')
 
         line.append('|')
 
@@ -160,7 +162,7 @@ class Tableau:
             line.append(string)
 
             for i in range(max_lenght - len(string)):
-                line.append(' ')
+                line.append('_')
 
             line.append('|')
 
@@ -169,6 +171,13 @@ class Tableau:
 
     def print_tableau(self):
         max_lenght = self.__max_lenght()
+        line = list()
+
+        for i in range((max_lenght+1)*(len(self.__VARIABLES)+2)+1):
+            line.append('_')
+
+        line = ''.join(line)
+        print(line)
         self.__print_head(max_lenght)
         self.__print_constraints(max_lenght)
         self.__print_function(max_lenght)
@@ -185,7 +194,7 @@ class Tableau:
                     entering = var
                     break
 
-        if entering in self.__BASE or entering in optimal_variables:
+        if entering in self.__BASE or entering in optimal_variables or self.__OBJ_FCT[entering] < 0:
             entering = None
 
         return entering
@@ -214,6 +223,8 @@ class Tableau:
                 leaving_variable_index = i
 
         return leaving_variable_index
+
+    #def entering_leaving(self):
 
     def __new_base(self,entering,leaving_variable_index):
         new_base = copy.deepcopy(self.__BASE)
@@ -414,7 +425,7 @@ class Problem:
 
         return base
 
-    def solution(self):
+    def solve(self):
         self.__extract_data()
         tableaux = list()
         optimal_variables = set()
@@ -424,11 +435,19 @@ class Problem:
         tableau = Tableau(starting_base,self.__VARIABLES,self.__constraints,self.__obj_fct)
         tableaux.append(tableau)
 
+        if tableau.is_final():
+            optimal_variables.update(tableau.base())
+
         entering = tableau.entering_variable(optimal_variables)
 
         while(entering != None):
             leaving_index = tableau.leaving_variable_index(entering)
             pivot = tableau.pivot(entering,leaving_index)
+
+            if leaving_index == 0:
+                if tableau.constraints()[0][entering] <= 0:
+                    break
+
             tableau = tableau.nextTableau(pivot,entering,leaving_index)
             tableaux.append(tableau)
 
