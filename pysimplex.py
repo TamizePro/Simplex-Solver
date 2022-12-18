@@ -187,11 +187,15 @@ class Tableau:
         entering = self.__VARIABLES[0]
 
         for var in self.__VARIABLES:
+            leaving_index = self.leaving_variable_index(var)
+
             if self.__OBJ_FCT[entering] < self.__OBJ_FCT[var]:
-                entering = var
+                if self.__CONSTRAINTS[leaving_index][var] > 0:
+                    entering = var
             elif self.__OBJ_FCT[entering] == self.__OBJ_FCT[var]:
                 if self.is_final() and var not in optimal_variables:
-                    entering = var
+                    if self.__CONSTRAINTS[leaving_index][var] > 0:
+                        entering = var
                     break
 
         if entering in self.__BASE or entering in optimal_variables or self.__OBJ_FCT[entering] < 0:
